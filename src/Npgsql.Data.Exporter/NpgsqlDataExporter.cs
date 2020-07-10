@@ -8,42 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
 
-namespace Repo.Exporter
+namespace Npgsql.Data.Exporter
 {
-    public static class NpgsqlCommandExtension
-    {
-        public static async Task<int> ExecuteFileAsync(this NpgsqlCommand cmd, string filename, Encoding enc = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var strText = System.IO.File.ReadAllText(filename, enc ?? Encoding.UTF8);
-            cmd.CommandText = strText;
-            return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-        }
-    }
-    public class NpgsqlDataMigrater
-    {
-        private string _connectionString = "Host=localhost;User ID=demo_user;Password=d3m0_pa55w0rd;Port=5432;Database=demo_database;";
-        private string _fileLocation = Directory.GetCurrentDirectory();
-
-        public async Task Execute(CancellationToken cancellationToken = default(CancellationToken), string fileLocation = null)
-        {
-            await using (var con = new NpgsqlConnection(_connectionString))
-            {
-                await con.OpenAsync(cancellationToken).ConfigureAwait(false);
-
-                using (var cmd = new NpgsqlCommand("", con))
-                {
-                    string[] files = System.IO.Directory.GetFiles(_fileLocation, "*.sql");
-                    foreach (var file in files)
-                    {
-                        var result = await cmd.ExecuteFileAsync(filename: file, cancellationToken: cancellationToken)
-                            .ConfigureAwait(false);
-                    }
-                }
-
-                await con.CloseAsync().ConfigureAwait(false);
-            }
-        }
-    }
     public class NpgsqlDataExporter
     {
         private string _connectionString = "Host=localhost;User ID=demo_user;Password=d3m0_pa55w0rd;Port=5432;Database=demo_database;";
