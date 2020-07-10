@@ -1,1 +1,1 @@
-# dotnet-npgsql-exporter
+# .NET Standard Postgres Data Exporter & Importer
