@@ -1,24 +1,27 @@
-﻿using System.IO;
+﻿using Npgsql.Data.Exporter.Extensions;
+using Npgsql.Data.Exporter.Models;
 using System.Threading;
 using System.Threading.Tasks;
-using Npgsql;
 
 namespace Npgsql.Data.Exporter
 {
-    public class NpgsqlDataMigrater
+    public class NpgsqlDataMigrater : DataExporter
     {
-        private string _connectionString = "Host=localhost;User ID=demo_user;Password=d3m0_pa55w0rd;Port=5432;Database=demo_database;";
-        private string _fileLocation = Directory.GetCurrentDirectory();
-
-        public async Task Execute(CancellationToken cancellationToken = default(CancellationToken), string fileLocation = null)
+        public NpgsqlDataMigrater(NpgsqlDataExporterConfiguration config) : base(config)
         {
-            await using (var con = new NpgsqlConnection(_connectionString))
+        }
+
+        public override async Task<string> Execute(CancellationToken cancellationToken = default(CancellationToken), string fileDirectory = null)
+        {
+            SetFilePath(fileDirectory);
+
+            await using (var con = new NpgsqlConnection(ConnectionString))
             {
                 await con.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using (var cmd = new NpgsqlCommand("", con))
                 {
-                    string[] files = System.IO.Directory.GetFiles(_fileLocation, "*.sql");
+                    string[] files = System.IO.Directory.GetFiles(FileDirectory, "*.sql");
                     foreach (var file in files)
                     {
                         var result = await cmd.ExecuteFileAsync(filename: file, cancellationToken: cancellationToken)
@@ -28,6 +31,8 @@ namespace Npgsql.Data.Exporter
 
                 await con.CloseAsync().ConfigureAwait(false);
             }
+
+            return FileDirectory;
         }
     }
 }

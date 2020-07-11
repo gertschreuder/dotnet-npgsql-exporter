@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Npgsql.Data.Exporter.Extensions;
 
 namespace Demo.App
 {
@@ -11,13 +12,14 @@ namespace Demo.App
         {
             try
             {
+                var config = ConfigurationExtensions.GetNpgsqlDataExporter();
                 var cts = new CancellationTokenSource();
 
-                var exporter = new NpgsqlDataExporter();
+                IDataExporter exporter = new NpgsqlDataExporter(config);
                 var fileLocation = await exporter.Execute(cts.Token)
                     .ConfigureAwait(false);
 
-                var migrater = new NpgsqlDataMigrater();
+                IDataExporter migrater = new NpgsqlDataMigrater(config);
                 await migrater.Execute(cts.Token, fileLocation).ConfigureAwait(false);
             }
             catch (Exception ex)

@@ -1,24 +1,25 @@
-﻿using System;
+﻿using Npgsql.Data.Exporter.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Npgsql;
 
 namespace Npgsql.Data.Exporter
 {
-    public class NpgsqlDataExporter
+    public class NpgsqlDataExporter : DataExporter
     {
-        private string _connectionString = "Host=localhost;User ID=demo_user;Password=d3m0_pa55w0rd;Port=5432;Database=demo_database;";
-        private string _fileLocation = Directory.GetCurrentDirectory();
-        public async Task<string> Execute(CancellationToken cancellationToken = default(CancellationToken), string fileLocation = null)
+        public NpgsqlDataExporter(NpgsqlDataExporterConfiguration config):base(config)
         {
-            SetFilePath(fileLocation);
+        }
 
-            await using (var con = new NpgsqlConnection(_connectionString))
+        public override async Task<string> Execute(CancellationToken cancellationToken = default(CancellationToken), string fileDirectory = null)
+        {
+            SetFilePath(fileDirectory);
+
+            await using (var con = new NpgsqlConnection(ConnectionString))
             {
                 await con.OpenAsync(cancellationToken).ConfigureAwait(false);
 
@@ -40,31 +41,12 @@ namespace Npgsql.Data.Exporter
                 }
             }
 
-            return _fileLocation;
-        }
-
-        private void SetFilePath(string fileLocation)
-        {
-            if (!string.IsNullOrWhiteSpace(fileLocation))
-            {
-                if (!Directory.Exists(fileLocation.Trim())) throw new ArgumentException($"'{fileLocation}' is not a valid system directory to save generated sql scripts.");
-                _fileLocation = fileLocation.Trim();
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    if (!_fileLocation.EndsWith("/"))
-                        _fileLocation += "/";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    if (!_fileLocation.EndsWith("\\"))
-                        _fileLocation += "\\";
-                }
-            }
+            return FileDirectory;
         }
 
         private async Task WriteTableData(string schema, string tableName, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await using (var con = new NpgsqlConnection(_connectionString))
+            await using (var con = new NpgsqlConnection(ConnectionString))
             {
                 await con.OpenAsync(cancellationToken).ConfigureAwait(false);
 
@@ -102,7 +84,7 @@ namespace Npgsql.Data.Exporter
                     sb = new StringBuilder();
                     sb.Length--;
                     var strI = $"INSERT INTO {schema}.{tableName} ({string.Join(",", selector)}) VALUES";
-                    File.WriteAllText($"{_fileLocation}{schema}-{tableName}-{saveIteration}.sql", $"{strI} {sb.ToString()};");
+                    File.WriteAllText($"{FileDirectory}{schema}-{tableName}-{saveIteration}.sql", $"{strI} {sb.ToString()};");
                     saveIteration++;
                 }
                 sb.Append("(");
@@ -122,7 +104,7 @@ namespace Npgsql.Data.Exporter
 
             sb.Length--;
             var str = $"INSERT INTO {schema}.{tableName} ({string.Join(",", selector)}) VALUES";
-            File.WriteAllText($"{_fileLocation}{schema}-{tableName}-{saveIteration}.sql", $"{str} {sb.ToString()};");
+            File.WriteAllText($"{FileDirectory}{schema}-{tableName}-{saveIteration}.sql", $"{str} {sb.ToString()};");
         }
 
         private async Task IterateReader(NpgsqlDataReader reader, string schema, string tableName, CancellationToken cancellationToken = default(CancellationToken))
@@ -147,7 +129,7 @@ namespace Npgsql.Data.Exporter
 
             sb.Length--;
             var str = $"INSERT INTO {schema}.{tableName} ({string.Join(",", selector)}) VALUES";
-            File.WriteAllText($"{_fileLocation}{schema}-{tableName}.sql", $"{str} {sb.ToString()};");
+            File.WriteAllText($"{FileDirectory}{schema}-{tableName}.sql", $"{str} {sb.ToString()};");
         }
 
         private object FormatValueFromDataType(Type type, object val)
