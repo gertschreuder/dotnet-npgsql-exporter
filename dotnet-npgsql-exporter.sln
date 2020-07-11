@@ -9,6 +9,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo.App", "src\Demo.App\De
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Npgsql.Data.Exporter", "src\Npgsql.Data.Exporter\Npgsql.Data.Exporter.csproj", "{E9AB7DC3-B639-4635-8740-6AA9976E96B2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{08225643-C751-44D7-950E-75A035ABDE4B}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		database.env = database.env
+		docker-compose.yml = docker-compose.yml
+		nuget.config = nuget.config
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
